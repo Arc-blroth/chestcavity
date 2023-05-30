@@ -49,11 +49,15 @@ public class MixinHungerManager {
         @ModifyArgs(method = "eat", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/HungerManager;add(IF)V"))
         public void chestCavityEatMixin(Args args, Item item, ItemStack stack) {
                 if(item.isFood() && CC_player != null){
+                        if(this.saturationLevel != this.saturationLevel) {
+                                // fix NaNs before I patched this bug - Arc'blroth
+                                this.saturationLevel = 0;
+                        }
                         //saturation gains are equal to hungerValue*saturationModifier*2
                         //this is kinda stupid, if I half the hunger gains from food I don't want to also half saturation gains
                         //so before hunger changes, calculate the saturation gain I intend
                         FoodComponent itemFoodComponent = item.getFoodComponent();
-                        if(itemFoodComponent != null) {
+                        if(itemFoodComponent != null && itemFoodComponent.getHunger() > 0) {
                                 EffectiveFoodScores efs = new EffectiveFoodScores(
                                         CC_player.getChestCavityInstance().getOrganScore(CCOrganScores.DIGESTION),
                                         CC_player.getChestCavityInstance().getOrganScore(CCOrganScores.NUTRITION));
